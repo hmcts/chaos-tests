@@ -1,0 +1,1 @@
+docker container run --user $(id -u) --volume $PWD:/tmp/result -it chaostoolkit/reporting -- report --export-format=pdf journal.json ./reports/chaos-experiments.pdf

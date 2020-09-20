@@ -1,0 +1,56 @@
+version: 1.0.0
+title: What happens if we terminate a Flux?
+description: If a Flux Pod is terminated, a new one should be created in its places.
+tags:
+- k8s
+- pod
+steady-state-hypothesis:
+  title: Flux Pod exists
+  probes:
+  - name: pod-exists
+    type: probe
+    tolerance: 1
+    provider:
+      type: python
+      func: count_pods
+      module: chaosk8s.pod.probes
+      arguments:
+        label_selector: app=flux
+        ns: admin
+  - name: pod-in-phase
+    type: probe
+    tolerance: true
+    provider:
+      type: python
+      func: pods_in_phase
+      module: chaosk8s.pod.probes
+      arguments:
+        label_selector: app=flux
+        ns: admin
+        phase: Running
+  - name: pod-in-conditions
+    type: probe
+    tolerance: true
+    provider:
+      type: python
+      func: pods_in_conditions
+      module: chaosk8s.pod.probes
+      arguments:
+        label_selector: app=flux
+        ns: admin
+        conditions:
+        - type: Ready
+          status: "True"
+method:
+- type: action
+  name: terminate-pod
+  provider:
+    type: python
+    module: chaosk8s.pod.actions
+    func: terminate_pods
+    arguments:
+      label_selector: app=flux
+      rand: true
+      ns: admin
+  pauses: 
+    after: 30
